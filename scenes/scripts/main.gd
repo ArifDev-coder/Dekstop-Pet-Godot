@@ -30,8 +30,6 @@ func _ready() -> void:
 	# subtract window height to make slime on the line, no under.
 	var target_y = usable_rect.end.y - window.size.y
 
-	
-
 	# 3. Move the slime there
 	# 	x = 0 (left edge), y = target_y (The taskbar/floor)
 	window.position = Vector2i(0, target_y)
