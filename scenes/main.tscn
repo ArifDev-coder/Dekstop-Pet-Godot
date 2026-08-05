@@ -156,10 +156,10 @@ script = ExtResource("1_sugp2")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=774969354]
 texture_filter = 1
-position = Vector2(71, 62)
+position = Vector2(70, 62)
 scale = Vector2(4, 4)
 sprite_frames = SubResource("SpriteFrames_dfnip")
 animation = &"walk"
 autoplay = "walk"
-frame_progress = 0.40136668
+frame_progress = 0.23408072
 speed_scale = 2.0
