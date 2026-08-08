@@ -2,6 +2,11 @@ extends Node2D
 
 var move_speed = 2
 var direction = Vector2(1, 0) # Move Right
+var is_chilling = false
+
+func _input(event):
+	# Check if mouse left button pressed
+	pass
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -34,7 +39,21 @@ func _ready() -> void:
 	# 	x = 0 (left edge), y = target_y (The taskbar/floor)
 	window.position = Vector2i(0, target_y)
 
+	# This Code not working on linux wayland
+	# Run once at start
+	# _update_mouse_mask()
+	#Update every time animation changes
+	# $AnimatedSprite2D.frame_changed.connect(_update_mouse_mask)
+
+	$Area2D.input_event.connect(_on_area_input)
+
+	$AnimatedSprite2D.play("walk")
+
+
 func _process(delta):
+	# If are chilling, we hit 'return'
+	if is_chilling: return
+
 	var window = get_window()
 
 	# Vector2i used interger with Vector2 for the monitor pixel
@@ -56,3 +75,45 @@ func _process(delta):
 	elif window.position.x < usable_rect.position.x:
 		direction.x = 1
 		$AnimatedSprite2D.flip_h = false
+
+
+func _on_area_input(_viewport, event, _shape_idx):
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if not is_chilling:
+			print("Left Mouse clicked")
+			start_chilling()
+
+
+# This function not working on linux wayland
+func _update_mouse_mask():
+	var anim = $AnimatedSprite2D
+
+	# Get the raw image data of the Current frame
+	var texture = anim.sprite_frames.get_frame_texture(anim.animation, anim.frame)
+	var image = texture.get_image()
+
+	# Manually flip the sprite while the image visual uncorrect.
+	if anim.flip_h:
+		image.flip_x()
+
+	# Create the Bitmap (The Map of solid pixels)
+	var bitmap = BitMap.new()
+	bitmap.create_from_image_alpha(image, 0.1)
+
+	# Create the Polygon
+	# 0.1 = ignore fully transparent pixels
+	var polygons = bitmap.opaque_to_polygons(Rect2(Vector2.ZERO, texture.get_size()))
+
+	# Apply to the OS Window
+	if polygons.size() > 0:
+		DisplayServer.window_set_mouse_passthrough(polygons[0])
+
+
+func start_chilling():
+	is_chilling = true;
+	$AnimatedSprite2D.play("idle")
+
+	await get_tree().create_timer(3.0).timeout
+
+	is_chilling = false
+	$AnimatedSprite2D.play("walk")

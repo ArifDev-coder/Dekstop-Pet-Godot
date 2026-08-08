@@ -115,7 +115,7 @@ animations = [{
 }],
 "loop": 1,
 "name": &"idle",
-"speed": 5.0
+"speed": 7.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -147,8 +147,11 @@ animations = [{
 }],
 "loop": 1,
 "name": &"walk",
-"speed": 5.0
+"speed": 7.0
 }]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_y0j6r"]
+radius = 39.051247
 
 [node name="Main" type="Node2D" unique_id=1037155458]
 position = Vector2(-6, 2)
@@ -156,10 +159,16 @@ script = ExtResource("1_sugp2")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=774969354]
 texture_filter = 1
-position = Vector2(70, 62)
+position = Vector2(70, 68)
 scale = Vector2(4, 4)
 sprite_frames = SubResource("SpriteFrames_dfnip")
 animation = &"walk"
 autoplay = "walk"
-frame_progress = 0.23408072
+frame_progress = 0.18209273
 speed_scale = 2.0
+
+[node name="Area2D" type="Area2D" parent="." unique_id=680737912]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=958898934]
+position = Vector2(69, 77)
+shape = SubResource("CircleShape2D_y0j6r")
