@@ -1,8 +1,14 @@
 extends Node2D
 
-var move_speed = 2
+var move_speed = 1
 var direction = Vector2(1, 0) # Move Right
 var is_chilling = false
+
+var texture
+var image
+
+@onready var anim = $AnimatedSprite2D
+@onready var soundfx = $Hi
 
 func _input(event):
 	# Check if mouse left button pressed
@@ -12,6 +18,9 @@ func _input(event):
 func _ready() -> void:
 	#Get access to the actual OS Window
 	var window = get_window()
+	
+	texture = anim.sprite_frames.get_frame_texture(anim.animation, anim.frame)
+	image = texture.get_image()
 
 	#Transparent Setup
 	get_viewport().transparent_bg = true
@@ -45,6 +54,7 @@ func _ready() -> void:
 	#Update every time animation changes
 	# $AnimatedSprite2D.frame_changed.connect(_update_mouse_mask)
 
+
 	$Area2D.input_event.connect(_on_area_input)
 
 	$AnimatedSprite2D.play("walk")
@@ -76,21 +86,18 @@ func _process(delta):
 		direction.x = 1
 		$AnimatedSprite2D.flip_h = false
 
-
 func _on_area_input(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if not is_chilling:
-			print("Left Mouse clicked")
 			start_chilling()
+			soundfx.play()
 
 
 # This function not working on linux wayland
 func _update_mouse_mask():
-	var anim = $AnimatedSprite2D
-
 	# Get the raw image data of the Current frame
-	var texture = anim.sprite_frames.get_frame_texture(anim.animation, anim.frame)
-	var image = texture.get_image()
+	anim.sprite_frames.get_frame_texture(anim.animation, anim.frame)
+	texture.get_image()
 
 	# Manually flip the sprite while the image visual uncorrect.
 	if anim.flip_h:
@@ -113,7 +120,7 @@ func start_chilling():
 	is_chilling = true;
 	$AnimatedSprite2D.play("idle")
 
-	await get_tree().create_timer(3.0).timeout
+	await get_tree().create_timer(1.0).timeout
 
 	is_chilling = false
 	$AnimatedSprite2D.play("walk")
