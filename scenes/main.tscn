@@ -135,9 +135,9 @@ texture_filter = 1
 position = Vector2(64, 63)
 scale = Vector2(4, 4)
 sprite_frames = SubResource("SpriteFrames_dfnip")
-animation = &"idle"
+animation = &"walk"
 autoplay = "walk"
-frame_progress = 0.25276276
+frame_progress = 0.21010232
 speed_scale = 2.0
 
 [node name="Area2D" type="Area2D" parent="." unique_id=680737912]

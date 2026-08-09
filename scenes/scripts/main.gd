@@ -1,5 +1,15 @@
 extends Node2D
 
+# Define the State of mode the Sprite
+enum State {
+	WALKING,
+	CHILLING,
+	DRAGGING,
+	THROWN
+}
+
+var state: State = State.WALKING
+
 var move_speed = 1
 var direction = Vector2(1, 0) # Move Right
 var is_chilling = false
@@ -7,12 +17,9 @@ var is_chilling = false
 var texture
 var image
 
+@onready var area = $Area2D
 @onready var anim = $AnimatedSprite2D
 @onready var soundfx = $Hi
-
-func _input(event):
-	# Check if mouse left button pressed
-	pass
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -36,15 +43,15 @@ func _ready() -> void:
 	window.unresizable = false
 
 	# Find the floor / taskbar
-	# 1. Get the safe area of the screen (minus taskbar)
+	# Get the safe area of the screen (minus taskbar)
 	var usable_rect = DisplayServer.screen_get_usable_rect()
 
-	# 2. Calculate the floor position
+	# Calculate the floor position
 	# end.y is pixel coordinate the taskbar start.
 	# subtract window height to make slime on the line, no under.
 	var target_y = usable_rect.end.y - window.size.y
 
-	# 3. Move the slime there
+	# Move the slime there
 	# 	x = 0 (left edge), y = target_y (The taskbar/floor)
 	window.position = Vector2i(0, target_y)
 
@@ -54,20 +61,35 @@ func _ready() -> void:
 	#Update every time animation changes
 	# $AnimatedSprite2D.frame_changed.connect(_update_mouse_mask)
 
+	area.input_event.connect(_on_area_input)
 
-	$Area2D.input_event.connect(_on_area_input)
-
-	$AnimatedSprite2D.play("walk")
+	anim.play("walk")
 
 
 func _process(delta):
 	# If are chilling, we hit 'return'
-	if is_chilling: return
+	# if is_chilling: return
 
+	match state:
+		State.WALKING:
+			_process_walking()
+		State.CHILLING:
+			pass
+		State.DRAGGING:
+			# _process_dragging() 
+			pass
+		State.THROWN:
+			# _process_thrown()
+			pass
+
+	_process_walking()
+
+
+func _process_walking():
+	# Get the window
 	var window = get_window()
 
 	# Vector2i used interger with Vector2 for the monitor pixel
-
 	# Calculate the move
 	var move_vector = Vector2i(direction * move_speed)
 
@@ -81,16 +103,30 @@ func _process(delta):
 	# Check right and left edge
 	if window.position.x + window.size.x > usable_rect.end.x:
 		direction.x = -1 # Reverse direction
-		$AnimatedSprite2D.flip_h = true # flip visual
+		anim.flip_h = true # flip visual
 	elif window.position.x < usable_rect.position.x:
 		direction.x = 1
-		$AnimatedSprite2D.flip_h = false
+		anim.flip_h = false
 
+# Inputhandling for clicking the sprite
 func _on_area_input(_viewport, event, _shape_idx):
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		if not is_chilling:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
 			start_chilling()
 			soundfx.play()
+			_start_dragging()
+		else:
+			pass
+
+
+func _start_dragging():
+	if state == State.CHILLING:
+		return
+	
+	var window = get_window()
+	var mouse_pos = DisplayServer.mouse_get_button_state()
+
+	print("Is Dragging")
 
 
 # This function not working on linux wayland
@@ -115,12 +151,11 @@ func _update_mouse_mask():
 	if polygons.size() > 0:
 		DisplayServer.window_set_mouse_passthrough(polygons[0])
 
-
 func start_chilling():
-	is_chilling = true;
+	state = State.CHILLING
 	$AnimatedSprite2D.play("idle")
 
 	await get_tree().create_timer(1.0).timeout
 
-	is_chilling = false
+	state = State.WALKING
 	$AnimatedSprite2D.play("walk")
