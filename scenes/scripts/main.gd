@@ -1,5 +1,12 @@
 extends Node2D
 
+# CONFIG
+const DRAG_THRESHOLD = 5
+const GRAVITY = 1.5
+const BOUNCE_DAMPING = 0.5
+const FRICTION = 0.9 
+const SETTLE_VELOCITY = 0.5
+
 # Define the State of mode the Sprite
 enum State {
 	WALKING,
@@ -7,6 +14,11 @@ enum State {
 	DRAGGING,
 	THROWN
 }
+
+var drag_offset = Vector2i.ZERO 	# distance of mouse click from right corner window
+var drag_start_pos = Vector2i.ZERO
+var velocity = Vector2.ZERO	
+var last_mouse_pos = Vector2i.ZERO
 
 var state: State = State.WALKING
 
@@ -76,13 +88,11 @@ func _process(delta):
 		State.CHILLING:
 			pass
 		State.DRAGGING:
-			# _process_dragging() 
-			pass
+			_process_dragging() 
 		State.THROWN:
-			# _process_thrown()
-			pass
+			_process_thrown()
 
-	_process_walking()
+	# _process_walking()
 
 
 func _process_walking():
@@ -108,54 +118,120 @@ func _process_walking():
 		direction.x = 1
 		anim.flip_h = false
 
+
+func _process_dragging():
+	var window = get_window()
+	var mouse_pos = DisplayServer.mouse_get_position()
+
+	var new_positionn = mouse_pos - drag_offset
+
+	velocity = Vector2(mouse_pos - last_mouse_pos)
+	last_mouse_pos = new_positionn
+
+	window.position = new_positionn
+	print(velocity)
+
+
+func _process_thrown():
+	var window = get_window()
+	var usable_rect = DisplayServer.screen_get_usable_rect()
+
+	velocity.y += GRAVITY
+
+	window.position += Vector2i(velocity)
+
+	var floor_y = usable_rect.end.y - window.size.y
+
+	if window.position.y >= floor_y:
+		window.position.y = floor_y
+		if abs(velocity.y) > 1.0:
+			velocity.y = -velocity.y * BOUNCE_DAMPING
+			velocity.x *= FRICTION
+		else:
+			velocity.y = 0
+
+	if window.position.x + window.size.x > usable_rect.end.x:
+		window.position.x = usable_rect.end.x - window.size.x
+		velocity.x = -velocity.x * BOUNCE_DAMPING
+	elif window.position.x < usable_rect.position.x:
+		window.position.x = usable_rect.position.x
+		velocity.x = -velocity.x * BOUNCE_DAMPING
+
+	var on_floor = window.position.y >= floor_y - 1
+	if on_floor and velocity.length() < SETTLE_VELOCITY:
+		velocity = Vector2.ZERO
+		state = State.WALKING
+		anim.play("walk")
+
+
 # Inputhandling for clicking the sprite
 func _on_area_input(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			start_chilling()
-			soundfx.play()
 			_start_dragging()
 		else:
-			pass
+			_end_dragging()
 
 
 func _start_dragging():
-	if state == State.CHILLING:
-		return
+	if state == State.CHILLING: return
 	
 	var window = get_window()
-	var mouse_pos = DisplayServer.mouse_get_button_state()
+	var mouse_pos = DisplayServer.mouse_get_position()
 
-	print("Is Dragging")
+	drag_offset = mouse_pos - window.position
+	drag_start_pos = mouse_pos
+	last_mouse_pos = mouse_pos
+	velocity = Vector2.ZERO
+
+	state = State.DRAGGING
+
+	anim.play("dragging")
+
+
+func _end_dragging():
+	if state != State.DRAGGING: return
+
+	var mouse_pos = DisplayServer.mouse_get_position()
+	var moved_distance = mouse_pos.distance_to(drag_start_pos)
+
+	if moved_distance < DRAG_THRESHOLD:
+		state = State.WALKING
+		start_chilling()
+		soundfx.play()
+	else:
+		state = State.THROWN
+		anim.play("thrown")
+
 
 
 # This function not working on linux wayland
-func _update_mouse_mask():
-	# Get the raw image data of the Current frame
-	anim.sprite_frames.get_frame_texture(anim.animation, anim.frame)
-	texture.get_image()
+# func _update_mouse_mask():
+# 	# Get the raw image data of the Current frame
+# 	anim.sprite_frames.get_frame_texture(anim.animation, anim.frame)
+# 	texture.get_image()
 
-	# Manually flip the sprite while the image visual uncorrect.
-	if anim.flip_h:
-		image.flip_x()
+# 	# Manually flip the sprite while the image visual uncorrect.
+# 	if anim.flip_h:
+# 		image.flip_x()
 
-	# Create the Bitmap (The Map of solid pixels)
-	var bitmap = BitMap.new()
-	bitmap.create_from_image_alpha(image, 0.1)
+# 	# Create the Bitmap (The Map of solid pixels)
+# 	var bitmap = BitMap.new()
+# 	bitmap.create_from_image_alpha(image, 0.1)
 
-	# Create the Polygon
-	# 0.1 = ignore fully transparent pixels
-	var polygons = bitmap.opaque_to_polygons(Rect2(Vector2.ZERO, texture.get_size()))
+# 	# Create the Polygon
+# 	# 0.1 = ignore fully transparent pixels
+# 	var polygons = bitmap.opaque_to_polygons(Rect2(Vector2.ZERO, texture.get_size()))
 
-	# Apply to the OS Window
-	if polygons.size() > 0:
-		DisplayServer.window_set_mouse_passthrough(polygons[0])
+# 	# Apply to the OS Window
+# 	if polygons.size() > 0:
+# 		DisplayServer.window_set_mouse_passthrough(polygons[0])
 
 func start_chilling():
 	state = State.CHILLING
-	$AnimatedSprite2D.play("idle")
+	anim.play("idle")
 
 	await get_tree().create_timer(1.0).timeout
 
 	state = State.WALKING
-	$AnimatedSprite2D.play("walk")
+	anim.play("walk")

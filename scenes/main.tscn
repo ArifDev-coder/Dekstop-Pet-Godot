@@ -2,8 +2,22 @@
 
 [ext_resource type="Script" uid="uid://bu0p5wlpl2wx7" path="res://scenes/scripts/main.gd" id="1_sugp2"]
 [ext_resource type="Texture2D" uid="uid://d6tc3sgxua3q" path="res://sprites/cat_idle-Sheet.png" id="2_jyhfs"]
+[ext_resource type="Texture2D" uid="uid://djl3igrgpjn8f" path="res://sprites/cat-dragging.png" id="2_tbgi4"]
 [ext_resource type="Texture2D" uid="uid://chjbbxqyolial" path="res://sprites/cat_walk-Sheet.png" id="3_tbgi4"]
 [ext_resource type="AudioStream" uid="uid://65ce2ly42ta" path="res://audio/m-e-o-w.mp3" id="4_jyhfs"]
+[ext_resource type="Texture2D" uid="uid://11m2wl01vhxb" path="res://sprites/cat_trown-Sheet.png" id="4_tefeu"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tefeu"]
+atlas = ExtResource("2_tbgi4")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o6xl0"]
+atlas = ExtResource("2_tbgi4")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tipki"]
+atlas = ExtResource("2_tbgi4")
+region = Rect2(64, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_85g3d"]
 atlas = ExtResource("2_jyhfs")
@@ -32,6 +46,14 @@ region = Rect2(128, 0, 32, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_yc10j"]
 atlas = ExtResource("2_jyhfs")
 region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jscy8"]
+atlas = ExtResource("4_tefeu")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pm3ni"]
+atlas = ExtResource("4_tefeu")
+region = Rect2(32, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jyhfs"]
 atlas = ExtResource("3_tbgi4")
@@ -69,6 +91,20 @@ region = Rect2(224, 0, 32, 32)
 animations = [{
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_tefeu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o6xl0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tipki")
+}],
+"loop": 0,
+"name": &"dragging",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_85g3d")
 }, {
 "duration": 1.0,
@@ -91,6 +127,17 @@ animations = [{
 }],
 "loop": 1,
 "name": &"idle",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jscy8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pm3ni")
+}],
+"loop": 1,
+"name": &"thrown",
 "speed": 4.0
 }, {
 "frames": [{
@@ -135,9 +182,9 @@ texture_filter = 1
 position = Vector2(64, 63)
 scale = Vector2(4, 4)
 sprite_frames = SubResource("SpriteFrames_dfnip")
-animation = &"walk"
+animation = &"thrown"
 autoplay = "walk"
-frame_progress = 0.21010232
+frame_progress = 0.95196027
 speed_scale = 2.0
 
 [node name="Area2D" type="Area2D" parent="." unique_id=680737912]
