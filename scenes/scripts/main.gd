@@ -4,8 +4,9 @@ extends Node2D
 const DRAG_THRESHOLD = 5
 const GRAVITY = 1.5
 const BOUNCE_DAMPING = 0.5
-const FRICTION = 0.9 
+const FRICTION = 0.9
 const SETTLE_VELOCITY = 0.5
+const MAX_VELOCITY = 20
 
 # Define the State of mode the Sprite
 enum State {
@@ -15,9 +16,9 @@ enum State {
 	THROWN
 }
 
-var drag_offset = Vector2i.ZERO 	# distance of mouse click from right corner window
+var drag_offset = Vector2i.ZERO # distance of mouse click from right corner window
 var drag_start_pos = Vector2i.ZERO
-var velocity = Vector2.ZERO	
+var velocity = Vector2.ZERO
 var last_mouse_pos = Vector2i.ZERO
 
 var state: State = State.WALKING
@@ -80,19 +81,19 @@ func _ready() -> void:
 
 func _process(delta):
 	# If are chilling, we hit 'return'
-	# if is_chilling: return
-
+	# if state == State.CHILLING: return
+	# _process_walking()
 	match state:
 		State.WALKING:
 			_process_walking()
 		State.CHILLING:
 			pass
 		State.DRAGGING:
-			_process_dragging() 
+			_process_dragging()
+			pass
 		State.THROWN:
 			_process_thrown()
-
-	# _process_walking()
+			pass
 
 
 func _process_walking():
@@ -126,7 +127,7 @@ func _process_dragging():
 	var new_positionn = mouse_pos - drag_offset
 
 	velocity = Vector2(mouse_pos - last_mouse_pos)
-	last_mouse_pos = new_positionn
+	last_mouse_pos = mouse_pos
 
 	window.position = new_positionn
 	print(velocity)
@@ -138,24 +139,28 @@ func _process_thrown():
 
 	velocity.y += GRAVITY
 
+	velocity = velocity.limit_length(MAX_VELOCITY)
+
+
 	window.position += Vector2i(velocity)
 
 	var floor_y = usable_rect.end.y - window.size.y
 
 	if window.position.y >= floor_y:
-		window.position.y = floor_y
-		if abs(velocity.y) > 1.0:
-			velocity.y = -velocity.y * BOUNCE_DAMPING
-			velocity.x *= FRICTION
-		else:
-			velocity.y = 0
+		# window.position.y = floor_y
+		# if abs(velocity.y) > 1.0:
+			# velocity.y = - velocity.y * BOUNCE_DAMPING
+			# velocity.x *= FRICTION
+		# else:
+		velocity.y = 0
+		velocity.x = 0
 
 	if window.position.x + window.size.x > usable_rect.end.x:
 		window.position.x = usable_rect.end.x - window.size.x
-		velocity.x = -velocity.x * BOUNCE_DAMPING
+		velocity.x = - velocity.x * BOUNCE_DAMPING
 	elif window.position.x < usable_rect.position.x:
 		window.position.x = usable_rect.position.x
-		velocity.x = -velocity.x * BOUNCE_DAMPING
+		velocity.x = - velocity.x * BOUNCE_DAMPING
 
 	var on_floor = window.position.y >= floor_y - 1
 	if on_floor and velocity.length() < SETTLE_VELOCITY:
@@ -169,6 +174,7 @@ func _on_area_input(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			_start_dragging()
+			# start_chilling()
 		else:
 			_end_dragging()
 
@@ -186,7 +192,12 @@ func _start_dragging():
 
 	state = State.DRAGGING
 
-	anim.play("dragging")
+	anim.play("short_grab")
+
+	await get_tree().create_timer(2).timeout
+
+	if state == State.DRAGGING:
+		anim.play("long_grab")
 
 
 func _end_dragging():
@@ -198,12 +209,18 @@ func _end_dragging():
 	if moved_distance < DRAG_THRESHOLD:
 		state = State.WALKING
 		start_chilling()
-		soundfx.play()
 	else:
 		state = State.THROWN
-		anim.play("thrown")
+		# anim.play("thrown")
 
-
+		print(last_mouse_pos.x - mouse_pos.x)
+		if last_mouse_pos.x - mouse_pos.x > 0:
+			anim.play("thrownX")
+		elif last_mouse_pos.x - mouse_pos.x < 0:
+			anim.play("thrownXFlip")
+		else:
+			anim.play("thrownUp")
+			
 
 # This function not working on linux wayland
 # func _update_mouse_mask():
@@ -231,7 +248,7 @@ func start_chilling():
 	state = State.CHILLING
 	anim.play("idle")
 
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(2).timeout
 
 	state = State.WALKING
 	anim.play("walk")
