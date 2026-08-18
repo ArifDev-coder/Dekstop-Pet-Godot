@@ -522,10 +522,8 @@ texture_filter = 1
 position = Vector2(71, 55.000008)
 scale = Vector2(2.03125, 2.203125)
 sprite_frames = SubResource("SpriteFrames_dfnip")
-animation = &"short_grab"
+animation = &"thrownDown"
 autoplay = "walk"
-frame = 3
-frame_progress = 1.0
 speed_scale = 2.0
 
 [node name="Area2D" type="Area2D" parent="." unique_id=680737912]

@@ -2,7 +2,9 @@ extends Node2D
 
 # CONFIG
 @export var MAX_VELOCITY = 20
-@export var GRAVITY = 0.2
+@export var GRAVITY: float = 1.5
+@export var MIN_TIME : float = 1.0
+@export var MAX_TIME : float = 10.0
 const DRAG_THRESHOLD = 5
 const BOUNCE_DAMPING = 0.5
 const FRICTION = 0.9
@@ -16,16 +18,18 @@ enum State {
 	THROWN
 }
 
-var drag_offset : Vector2i = Vector2i.ZERO # distance of mouse click from right corner window
-var drag_start_pos : Vector2i = Vector2i.ZERO
-var velocity : Vector2 = Vector2.ZERO
-var last_mouse_pos : Vector2i = Vector2i.ZERO
+# @export var random_anim = ["sneeze"]
 
-var state : State = State.WALKING
+var drag_offset: Vector2i = Vector2i.ZERO # distance of mouse click from right corner window
+var drag_start_pos: Vector2i = Vector2i.ZERO
+var velocity: Vector2 = Vector2.ZERO
+var last_mouse_pos: Vector2i = Vector2i.ZERO
 
-var move_speed : int = 1
-var direction : Vector2 = Vector2(1, 0) # Move Right
-var is_chilling : bool = false
+var state: State = State.WALKING
+
+var move_speed: int = 1
+var direction: Vector2 = Vector2(1, 0) # Move Right
+var is_chilling: bool = false
 
 var texture
 var image
@@ -78,11 +82,14 @@ func _ready() -> void:
 
 	anim.play("walk")
 
+	_random_animation()
+
 
 func _process(delta):
 	# If are chilling, we hit 'return'
 	# if state == State.CHILLING: return
 	# _process_walking()
+
 	match state:
 		State.WALKING:
 			_process_walking()
@@ -145,7 +152,6 @@ func _process_thrown():
 	velocity.y += GRAVITY
 
 	velocity = velocity.limit_length(MAX_VELOCITY)
-
 
 	window.position += Vector2i(velocity)
 
@@ -233,6 +239,26 @@ func _end_dragging():
 
 		print("start: ", drag_start_pos, ", end: ", mouse_pos, "calculate: ", drag_start_pos - mouse_pos)
 
+func _random_animation():
+	while true:
+		var wait_time = randf_range(MIN_TIME, MAX_TIME)
+
+		print(wait_time)
+
+		await get_tree().create_timer(wait_time).timeout
+
+		if state == State.WALKING:
+			state = State.CHILLING
+			
+			# Used if animation quite a lot
+			# var rand_anim = random_anim[randi() % random_anim.size()]
+
+			anim.play("sneeze")
+
+			await anim.animation_finished
+
+			state = State.WALKING
+			anim.play("walk")
 
 # This function not working on linux wayland
 # func _update_mouse_mask():
@@ -258,7 +284,7 @@ func _end_dragging():
 
 func start_chilling():
 	state = State.CHILLING
-	anim.play("sneeze")
+	anim.play("idle")
 
 	# await get_tree().create_timer(3).timeout
 	await anim.animation_finished
