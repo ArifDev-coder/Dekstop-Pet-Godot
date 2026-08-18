@@ -144,6 +144,11 @@ func _process_thrown():
 
 	window.position += Vector2i(velocity)
 
+	if velocity.y < 0:
+		anim.play("thrownUp")
+	else:
+		anim.play("thrownDown")
+
 	var floor_y = usable_rect.end.y - window.size.y
 
 	if window.position.y >= floor_y:
@@ -213,14 +218,16 @@ func _end_dragging():
 		state = State.THROWN
 		# anim.play("thrown")
 
-		print(last_mouse_pos.x - mouse_pos.x)
-		if last_mouse_pos.x - mouse_pos.x > 0:
-			anim.play("thrownX")
-		elif last_mouse_pos.x - mouse_pos.x < 0:
-			anim.play("thrownXFlip")
-		else:
-			anim.play("thrownUp")
-			
+		# print(last_mouse_pos.x - mouse_pos.x)
+		# if last_mouse_pos.x - mouse_pos.x > 0:
+		# 	anim.play("thrownX")
+		# elif last_mouse_pos.x - mouse_pos.x < 0:
+		# 	anim.play("thrownXFlip")
+		# else:
+		# 	anim.play("thrownUp")
+
+		print("start: ", drag_start_pos, ", end: ", mouse_pos, "calculate: ", drag_start_pos - mouse_pos)
+
 
 # This function not working on linux wayland
 # func _update_mouse_mask():

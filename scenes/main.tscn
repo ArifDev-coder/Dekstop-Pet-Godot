@@ -153,6 +153,14 @@ region = Rect2(832, 0, 64, 64)
 atlas = ExtResource("3_tefeu")
 region = Rect2(896, 0, 64, 64)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_bjg73"]
+atlas = ExtResource("6_tipki")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bu4jf"]
+atlas = ExtResource("6_tipki")
+region = Rect2(384, 0, 64, 64)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_ty1g6"]
 atlas = ExtResource("6_tipki")
 region = Rect2(128, 0, 64, 64)
@@ -326,6 +334,17 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_bjg73")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bu4jf")
+}],
+"loop": 1,
+"name": &"thrownDown",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_ty1g6")
 }, {
 "duration": 1.0,
@@ -373,7 +392,7 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_y0j6r"]
-radius = 119.8207
+radius = 52.611786
 
 [node name="Main" type="Node2D" unique_id=1037155458]
 position = Vector2(-6, 2)
@@ -384,8 +403,9 @@ texture_filter = 1
 position = Vector2(69, 85.00001)
 scale = Vector2(2.03125, 2.203125)
 sprite_frames = SubResource("SpriteFrames_dfnip")
-animation = &"thrownX"
+animation = &"thrownDown"
 autoplay = "walk"
+frame_progress = 0.97949755
 speed_scale = 2.0
 
 [node name="Area2D" type="Area2D" parent="." unique_id=680737912]
