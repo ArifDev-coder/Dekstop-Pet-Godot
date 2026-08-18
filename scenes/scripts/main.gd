@@ -1,12 +1,12 @@
 extends Node2D
 
 # CONFIG
+@export var MAX_VELOCITY = 20
+@export var GRAVITY = 0.2
 const DRAG_THRESHOLD = 5
-const GRAVITY = 1.5
 const BOUNCE_DAMPING = 0.5
 const FRICTION = 0.9
 const SETTLE_VELOCITY = 0.5
-const MAX_VELOCITY = 20
 
 # Define the State of mode the Sprite
 enum State {
@@ -16,16 +16,16 @@ enum State {
 	THROWN
 }
 
-var drag_offset = Vector2i.ZERO # distance of mouse click from right corner window
-var drag_start_pos = Vector2i.ZERO
-var velocity = Vector2.ZERO
-var last_mouse_pos = Vector2i.ZERO
+var drag_offset : Vector2i = Vector2i.ZERO # distance of mouse click from right corner window
+var drag_start_pos : Vector2i = Vector2i.ZERO
+var velocity : Vector2 = Vector2.ZERO
+var last_mouse_pos : Vector2i = Vector2i.ZERO
 
-var state: State = State.WALKING
+var state : State = State.WALKING
 
-var move_speed = 1
-var direction = Vector2(1, 0) # Move Right
-var is_chilling = false
+var move_speed : int = 1
+var direction : Vector2 = Vector2(1, 0) # Move Right
+var is_chilling : bool = false
 
 var texture
 var image
@@ -121,6 +121,11 @@ func _process_walking():
 
 
 func _process_dragging():
+	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		print("Mouse terlepas")
+		_end_dragging()
+		return
+
 	var window = get_window()
 	var mouse_pos = DisplayServer.mouse_get_position()
 
@@ -199,7 +204,7 @@ func _start_dragging():
 
 	anim.play("short_grab")
 
-	await get_tree().create_timer(2).timeout
+	await get_tree().create_timer(1).timeout
 
 	if state == State.DRAGGING:
 		anim.play("long_grab")
@@ -253,9 +258,10 @@ func _end_dragging():
 
 func start_chilling():
 	state = State.CHILLING
-	anim.play("idle")
+	anim.play("sneeze")
 
-	await get_tree().create_timer(2).timeout
+	# await get_tree().create_timer(3).timeout
+	await anim.animation_finished
 
 	state = State.WALKING
 	anim.play("walk")
